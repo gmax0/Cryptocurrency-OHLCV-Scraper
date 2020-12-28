@@ -40,7 +40,7 @@ Optional if you'd like to enable a Discord alert for when a job completes:
 ### Execution 
 All times are understood to be UTC.
 
-```python3 coinapi-scraper.py --symbol COINBASE_SPOT_ETH_USD --startDate 2018-01-01T00:00:00 --endDate 2018-01-02T00:00:00--resolution 1MIN```
+```python3 coinapi-scraper.py --symbol COINBASE_SPOT_ETH_USD --startDate 2018-01-01T00:00:00 --endDate 2018-01-02T00:00:00 --resolution 1MIN```
 
 The full range of resolutions supported by CoinAPI is NOT supported by this script. Anything besides 1MIN will fail.
 
