@@ -10,30 +10,29 @@ Optional if you'd like to enable a Discord alert for when a job completes:
 ## Usage
 
 ```
-python3 coinbasepro-scraper.py \
+python3 ftx-scraper.py \
 --startDate 1609459200000 \
 --endDate 1609545600000 \
 --resolution 1m \
---market ETH-USD
+--market BTC/USD
 ```
 
-Execution of the above command will scrape ```1m``` OHLCV data for ```ETH-USD``` for the time range: ```(1609459200000, 1609459200000]```
-To capture the range of ```[1609459200000, 1609459200000]```, simply subtract a minute from the startDate value.
+Execution of the above command will scrape ```1m``` OHLCV data for ```BTC/USD``` for the time range: ```[1609459200000, 1609459200000]```
 
 Option | Description
 --- | ---
 --startDate | Unix timestamp (ms) of the start interval
 --endDate | Unix timestamp (ms) of the end interval
---resolution | Supported resolutions: ```1m```
+--resolution | Supported resolutions: ```15s, 1m```
 --market | Supported markets: ```SPOT```
 
 For a list of market symbols, see 
-https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
+https://ftx.com/api/markets/
 
 ## Outputs
 A .csv will be output to your present working directory under the name: 
-```data/coinbasepro/{market}.{resolution}.{startDate}.{endDate}```
+```data/ftx/{market}.{resolution}.{startDate}.{endDate}```
 
 A sample file is included in 
-```data/coinbasepro```
+```data/ftx```
 

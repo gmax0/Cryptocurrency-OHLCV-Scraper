@@ -4,26 +4,25 @@ import argparse
 import json
 import logging
 import datetime
-from datetime import timezone
 import datetime as DT
 import time
 import pandas as pd
 import sys
 
-LOG_DIR = "logs/coinbasepro"
-DATA_DIR = "data/coinbasepro"
-REST_URL = 'https://api.exchange.coinbase.com/products/{}/candles?granularity={}&start={}&end={}'
+LOG_DIR = "logs/ftx"
+DATA_DIR = "data/ftx"
+REST_URL = 'https://ftx.com/api/markets/{}/candles?resolution={}&start_time={}&end_time={}'
 
 OHLCV_DATA = []
 
 def convert_candle_to_dict_entry(candle):
     entry = {
-        "timestamp" : int(candle[0]),
-        "open" : candle[3],
-        "high" : candle[2],
-        "low" : candle[1],
-        "close" : candle[4],
-        "volume" : candle[5]
+        "timestamp" : int(DT.datetime.strptime(candle['startTime'], "%Y-%m-%dT%H:%M:%S+00:00").replace(tzinfo=DT.timezone.utc).timestamp()),
+        "open" : candle['open'],
+        "high" : candle['high'],
+        "low" : candle['low'],
+        "close" : candle['close'],
+        "volume" : candle['volume']
 
     }
     return entry
@@ -46,7 +45,7 @@ parser.add_argument('--resolution', type=str)
 args = parser.parse_args()
 
 # Setup Logger
-logfile= LOG_DIR + "/{}.{}.{}.{}".format(args.market, args.resolution, args.startDate, args.endDate)
+logfile= LOG_DIR + "/{}.{}.{}.{}".format(args.market.replace('/', '-'), args.resolution, args.startDate, args.endDate)
 logging.basicConfig(filename=logfile, 
 format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
 
@@ -63,14 +62,17 @@ startDateObj = DT.datetime.utcfromtimestamp(startDateSeconds).replace(tzinfo=dat
 endDateObj = DT.datetime.utcfromtimestamp(endDateSeconds).replace(tzinfo=datetime.timezone.utc)
 
 if args.resolution == '1m':
-    deltaTimeObj = datetime.timedelta(minutes=300) # CoinbasePro limits the number of candles per request to 300
+    deltaTimeObj = datetime.timedelta(minutes=300) # TODO: Check FTX's max interval size
     granularity = 60
+elif args.resolution == '1s':
+    deltaTimeObj = datetime.timedelta(minutes=20)
+    granularity = 15
 else:
     logging.error("Unsupported resolution.")
     sys.exit(1)
 
 header = ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'trades_count']
-filename = DATA_DIR + "/{}.{}.{}.{}.csv".format(args.market, args.resolution, args.startDate, args.endDate)
+filename = DATA_DIR + "/{}.{}.{}.{}.csv".format(args.market.replace('/', '-'), args.resolution, args.startDate, args.endDate)
 logging.info("Saving OHLCV data to: %s", filename)
 
 while startDateObj < endDateObj:
@@ -78,18 +80,19 @@ while startDateObj < endDateObj:
     url = REST_URL.format(
         symbol,
         granularity,
-        startDateObj.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-        endDateObjTemp.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        startDateObj.timestamp(),
+        endDateObjTemp.timestamp()
     )
 
     logging.info("Fetching OHLCV Data: " + url)
     response = requests.get(url)
     logging.info("Response Headers: {}".format(response.headers))
+    logging.info("Response Candle Count: {}".format(len(response.json()['result'])))
 
-    if len(response.json()) < 100:
-        logging.warn("Less than 100 candles returned for time interval beginning at {}".format(startDateObj))
-
-    for candle in response.json():
+    # if len(response.json()) < 100:
+        # logging.warn("Less than 100 candles returned for time interval beginning at {}".format(startDateObj))
+    
+    for candle in response.json()['result']:
         OHLCV_DATA.append(convert_candle_to_dict_entry(candle))
 
     time.sleep(0.25) # TODO: Add proper rate handling
