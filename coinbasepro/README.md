@@ -17,8 +17,9 @@ python3 coinbasepro-scraper.py \
 --market ETH-USD
 ```
 
-Execution of the above command will scrape ```1m``` OHLCV data for ```ETH-USD``` for the time range: ```(1609459200000, 1609459200000]```
-To capture the range of ```[1609459200000, 1609459200000]```, simply subtract a minute from the startDate value.
+Execution of the above command will scrape ```1m``` OHLCV data for ```ETH-USD``` for the time range: ```(1609459200000, 1609459200000]```.
+
+To capture the range of ```[1609459200000, 1609459200000]```, simply subtract 1m, 15m, etc. from the startDate value.
 
 Option | Description
 --- | ---
