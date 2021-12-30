@@ -1,6 +1,7 @@
 ## Dependencies
 - python3
 - pandas
+- boto3
 
 ## Setup
 Optional if you'd like to enable a Discord alert for when a job completes: 
@@ -10,15 +11,14 @@ Optional if you'd like to enable a Discord alert for when a job completes:
 ## Usage
 
 ```
-python3 coinbasepro-scraper.py \
+python3 binance-scraper.py \
 --startDate 1609459200000 \
 --endDate 1609545600000 \
 --resolution 1m \
---market ETH-USD
+--market ETHUSDT
 ```
 
-Execution of the above command will scrape ```1m``` OHLCV data for ```ETH-USD``` for the time range: ```(1609459200000, 1609459200000]```
-To capture the range of ```[1609459200000, 1609459200000]```, simply subtract a minute from the startDate value.
+Execution of the above command will scrape ```1m``` OHLCV data for ```ETHUSDT``` for the time range: ```[1609459200000, 1609459200000]```
 
 Option | Description
 --- | ---
@@ -32,4 +32,4 @@ https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
 
 ## Outputs
 A .csv will be output to your present working directory under the name: 
-```data/coinbasepro/{market}.{resolution}.{startDate}.{endDate}```
+```data/binance/{market}.{resolution}.{startDate}.{endDate}```

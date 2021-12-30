@@ -9,6 +9,7 @@ import datetime as DT
 import time
 import pandas as pd
 import sys
+import boto3
 
 LOG_DIR = "logs/coinbasepro"
 DATA_DIR = "data/coinbasepro"
@@ -18,7 +19,7 @@ OHLCV_DATA = []
 
 def convert_candle_to_dict_entry(candle):
     entry = {
-        "timestamp" : int(candle[0]),
+        "timestamp" : int(candle[0]) * 1000,
         "open" : candle[3],
         "high" : candle[2],
         "low" : candle[1],
@@ -36,6 +37,9 @@ if not os.path.exists(LOG_DIR):
 
 # Discord Webhook
 discord_webhook = os.environ.get('DISCORD_WEBHOOK_URL')
+
+# S3 Bucket Name
+s3_bucket_name = os.environ.get('S3_BUCKET_NAME')
 
 # Parse Arguments
 parser = argparse.ArgumentParser()
@@ -100,9 +104,13 @@ df = pd.DataFrame(OHLCV_DATA)
 df = df.set_index('timestamp')
 df = df.sort_index(ascending=True)
 df = df.drop_duplicates()
-df = df.truncate(after=endDateSeconds)
+df = df.truncate(after=endDate)
 df.to_csv(filename, index=True)
 
-if discord_webhook :
+if discord_webhook:
     r = requests.post(discord_webhook,
     json={"content": "Finished scraping data to: {}".format(filename)})
+
+if s3_bucket_name:
+    s3 = boto3.resource('s3')
+    s3.Bucket(s3_bucket_name).upload_file(filename, filename)

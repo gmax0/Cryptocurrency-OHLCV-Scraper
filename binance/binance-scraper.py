@@ -4,26 +4,27 @@ import argparse
 import json
 import logging
 import datetime
+from datetime import timezone
 import datetime as DT
 import time
 import pandas as pd
 import sys
 import boto3
 
-LOG_DIR = "logs/ftx"
-DATA_DIR = "data/ftx"
-REST_URL = 'https://ftx.com/api/markets/{}/candles?resolution={}&start_time={}&end_time={}'
+LOG_DIR = "logs/binance"
+DATA_DIR = "data/binance"
+REST_URL = "https://api.binance.com/api/v3/klines?symbol={}&interval={}&startTime={}&endTime={}" # Limit parameter seems to be ignored by the API
 
 OHLCV_DATA = []
 
 def convert_candle_to_dict_entry(candle):
     entry = {
-        "timestamp" : int(DT.datetime.strptime(candle['startTime'], "%Y-%m-%dT%H:%M:%S+00:00").replace(tzinfo=DT.timezone.utc).timestamp() * 1000),
-        "open" : candle['open'],
-        "high" : candle['high'],
-        "low" : candle['low'],
-        "close" : candle['close'],
-        "volume" : candle['volume']
+        "timestamp" : candle[0],
+        "open" : candle[1],
+        "high" : candle[2],
+        "low" : candle[3],
+        "close" : candle[4],
+        "volume" : candle[5]
 
     }
     return entry
@@ -49,7 +50,7 @@ parser.add_argument('--resolution', type=str)
 args = parser.parse_args()
 
 # Setup Logger
-logfile= LOG_DIR + "/{}.{}.{}.{}".format(args.market.replace('/', '-'), args.resolution, args.startDate, args.endDate)
+logfile= LOG_DIR + "/{}.{}.{}.{}".format(args.market, args.resolution, args.startDate, args.endDate)
 logging.basicConfig(filename=logfile, 
 format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
 
@@ -66,37 +67,32 @@ startDateObj = DT.datetime.utcfromtimestamp(startDateSeconds).replace(tzinfo=dat
 endDateObj = DT.datetime.utcfromtimestamp(endDateSeconds).replace(tzinfo=datetime.timezone.utc)
 
 if args.resolution == '1m':
-    deltaTimeObj = datetime.timedelta(minutes=300) # TODO: Check FTX's max interval size
-    granularity = 60
-elif args.resolution == '1s':
-    deltaTimeObj = datetime.timedelta(minutes=20)
-    granularity = 15
+    deltaTimeObj = datetime.timedelta(minutes=60) # Number of candles returned per call = 60
 else:
     logging.error("Unsupported resolution.")
     sys.exit(1)
 
 header = ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'trades_count']
-filename = DATA_DIR + "/{}.{}.{}.{}.csv".format(args.market.replace('/', '-'), args.resolution, args.startDate, args.endDate)
+filename = DATA_DIR + "/{}.{}.{}.{}.csv".format(args.market, args.resolution, args.startDate, args.endDate)
 logging.info("Saving OHLCV data to: %s", filename)
 
 while startDateObj < endDateObj:
     endDateObjTemp = startDateObj + deltaTimeObj
     url = REST_URL.format(
         symbol,
-        granularity,
-        startDateObj.timestamp(),
-        endDateObjTemp.timestamp()
+        args.resolution,
+        int(startDateObj.timestamp() * 1000),
+        int(endDateObjTemp.timestamp() * 1000)
     )
 
     logging.info("Fetching OHLCV Data: " + url)
     response = requests.get(url)
     logging.info("Response Headers: {}".format(response.headers))
-    logging.info("Response Candle Count: {}".format(len(response.json()['result'])))
 
-    # if len(response.json()) < 100:
-        # logging.warn("Less than 100 candles returned for time interval beginning at {}".format(startDateObj))
-    
-    for candle in response.json()['result']:
+    if len(response.json()) < 100:
+        logging.warn("Less than 100 candles returned for time interval beginning at {}".format(startDateObj))
+
+    for candle in response.json():
         OHLCV_DATA.append(convert_candle_to_dict_entry(candle))
 
     time.sleep(0.25) # TODO: Add proper rate handling
@@ -108,9 +104,10 @@ df = df.set_index('timestamp')
 df = df.sort_index(ascending=True)
 df = df.drop_duplicates()
 df = df.truncate(after=endDate)
+
 df.to_csv(filename, index=True)
 
-if discord_webhook :
+if discord_webhook:
     r = requests.post(discord_webhook,
     json={"content": "Finished scraping data to: {}".format(filename)})
 
