@@ -13,7 +13,7 @@ import boto3
 
 LOG_DIR = "logs/binance"
 DATA_DIR = "data/binance"
-REST_URL = "https://api.binance.com/api/v3/klines?symbol={}&interval={}&startTime={}&endTime={}&limit=1500"
+REST_URL = "https://api.binance.com/api/v3/klines?symbol={}&interval={}&startTime={}&endTime={}&limit=1000"
 
 OHLCV_DATA = []
 
