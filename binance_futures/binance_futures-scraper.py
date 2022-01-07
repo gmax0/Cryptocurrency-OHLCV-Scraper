@@ -11,9 +11,9 @@ import pandas as pd
 import sys
 import boto3
 
-LOG_DIR = "logs/binance"
-DATA_DIR = "data/binance"
-REST_URL = "https://api.binance.com/api/v3/klines?symbol={}&interval={}&startTime={}&endTime={}&limit=1500"
+LOG_DIR = "logs/binance_futures"
+DATA_DIR = "data/binance_futures"
+REST_URL = "https://fapi.binance.com/fapi/v1/klines?symbol={}&interval={}&startTime={}&endTime={}&limit=1500"
 
 OHLCV_DATA = []
 
@@ -66,7 +66,7 @@ startDateObj = DT.datetime.utcfromtimestamp(startDateSeconds).replace(tzinfo=dat
 endDateObj = DT.datetime.utcfromtimestamp(endDateSeconds).replace(tzinfo=datetime.timezone.utc)
 
 if args.resolution == '1m':
-    deltaTimeObj = datetime.timedelta(minutes=1000)
+    deltaTimeObj = datetime.timedelta(minutes=1500)
 else:
     logging.error("Unsupported resolution.")
     sys.exit(1)
@@ -92,8 +92,8 @@ while startDateObj < endDateObj:
     logging.info("Response Headers: {}".format(response.headers))
     logging.info("Number of Candles: {}".format(len(response.json())))
 
-    if len(response.json()) < 100:
-        logging.warn("Less than 100 candles returned for time interval beginning at {}".format(startDateObj))
+    #if len(response.json()) < 100:
+    #    logging.warn("Less than 100 candles returned for time interval beginning at {}".format(startDateObj))
 
     for candle in response.json():
         OHLCV_DATA.append(convert_candle_to_dict_entry(candle))
