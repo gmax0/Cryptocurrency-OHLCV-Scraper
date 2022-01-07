@@ -81,6 +81,9 @@ logging.info("Saving OHLCV data to: %s", filename)
 
 while startDateObj < endDateObj:
     endDateObjTemp = startDateObj + deltaTimeObj
+    if (endDateObjTemp > endDateObj):
+        endDateObjTemp = endDateObj
+        
     url = REST_URL.format(
         symbol,
         granularity,

@@ -11,21 +11,20 @@ import pandas as pd
 import sys
 import boto3
 
-LOG_DIR = "logs/coinbasepro"
-DATA_DIR = "data/coinbasepro"
-REST_URL = 'https://api.exchange.coinbase.com/products/{}/candles?granularity={}&start={}&end={}'
+LOG_DIR = "logs/bitstamp"
+DATA_DIR = "data/bitstamp"
+REST_URL = "https://www.bitstamp.net/api/v2/ohlc/{}/?step={}&start={}&end={}&limit=1000"
 
 OHLCV_DATA = []
 
 def convert_candle_to_dict_entry(candle):
     entry = {
-        "timestamp" : int(candle[0]) * 1000,
-        "open" : candle[3],
-        "high" : candle[2],
-        "low" : candle[1],
-        "close" : candle[4],
-        "volume" : candle[5]
-
+        "timestamp" : int(DT.datetime.utcfromtimestamp(int(candle['timestamp'])).replace(tzinfo=DT.timezone.utc).timestamp() * 1000),
+        "open" : float(candle['open']),
+        "high" : float(candle['high']),
+        "low" : float(candle['low']),
+        "close" : float(candle['close']),
+        "volume" : float(candle['volume'])
     }
     return entry
 
@@ -67,13 +66,13 @@ startDateObj = DT.datetime.utcfromtimestamp(startDateSeconds).replace(tzinfo=dat
 endDateObj = DT.datetime.utcfromtimestamp(endDateSeconds).replace(tzinfo=datetime.timezone.utc)
 
 if args.resolution == '1m':
-    deltaTimeObj = datetime.timedelta(minutes=300) # CoinbasePro limits the number of candles per request to 300
-    granularity = 60
+    deltaTimeObj = datetime.timedelta(minutes=1000) 
+    startDateOffset = datetime.timedelta(minutes=1) # Bitstamp OHLCV intervals are open bounded at their start
+    granularity=60
 else:
     logging.error("Unsupported resolution.")
     sys.exit(1)
 
-header = ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'trades_count']
 filename = DATA_DIR + "/{}.{}.{}.{}.csv".format(args.market, args.resolution, args.startDate, args.endDate)
 logging.info("Saving OHLCV data to: %s", filename)
 
@@ -85,18 +84,16 @@ while startDateObj < endDateObj:
     url = REST_URL.format(
         symbol,
         granularity,
-        startDateObj.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-        endDateObjTemp.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        int((startDateObj - startDateOffset).timestamp()),
+        int(endDateObjTemp.timestamp())
     )
 
     logging.info("Fetching OHLCV Data: " + url)
     response = requests.get(url)
     logging.info("Response Headers: {}".format(response.headers))
+    logging.info("Number of Candles: {}".format(len(response.json()['data']['ohlc'])))
 
-    if len(response.json()) < 100:
-        logging.warn("Less than 100 candles returned for time interval beginning at {}".format(startDateObj))
-
-    for candle in response.json():
+    for candle in response.json()['data']['ohlc']:
         OHLCV_DATA.append(convert_candle_to_dict_entry(candle))
 
     time.sleep(0.25) # TODO: Add proper rate handling
@@ -108,6 +105,7 @@ df = df.set_index('timestamp')
 df = df.sort_index(ascending=True)
 df = df.drop_duplicates()
 df = df.truncate(after=endDate)
+
 df.to_csv(filename, index=True)
 
 if discord_webhook:

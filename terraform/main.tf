@@ -118,4 +118,40 @@ resource "aws_instance" "my-machine" {
         host        = "${self.public_dns}"
       }
   } 
+
+  provisioner "file" {
+      source = "../binance_futures/binance_futures-scraper.py"
+      destination = "~/binance-scraper.py"
+
+      connection {
+        type        = "ssh"
+        user        = "ubuntu"
+        private_key = "${file(var.key_location)}"
+        host        = "${self.public_dns}"
+      }
+  } 
+
+  provisioner "file" {
+      source = "../kucoin/kucoin-scraper.py"
+      destination = "~/kucoin-scraper.py"
+
+      connection {
+        type        = "ssh"
+        user        = "ubuntu"
+        private_key = "${file(var.key_location)}"
+        host        = "${self.public_dns}"
+      }
+  } 
+
+  provisioner "file" {
+      source = "../bitstamp/bitstamp-scraper.py"
+      destination = "~/bitstamp-scraper.py"
+
+      connection {
+        type        = "ssh"
+        user        = "ubuntu"
+        private_key = "${file(var.key_location)}"
+        host        = "${self.public_dns}"
+      }
+  } 
 }
