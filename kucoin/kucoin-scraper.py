@@ -98,7 +98,7 @@ while startDateObj < endDateObj:
     for candle in response.json()['data']:
         OHLCV_DATA.append(convert_candle_to_dict_entry(candle))
 
-    time.sleep(1.5) # TODO: Add proper rate handling
+    time.sleep(10) # TODO: Add proper rate handling
     startDateObj += deltaTimeObj
 
 # Output to CSV

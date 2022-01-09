@@ -2,7 +2,7 @@ variable "ec2_ami" {
   type = map
 
   default = {
-    us-east-1 = "ami-042b432b930cdde04"
+    us-east-1 = "ami-0e472ba40eb589f49"
     us-west-1 = "ami-042b432b930cdde04"
   }
 }
@@ -14,7 +14,7 @@ variable "region" {
 
 variable "instance_type" {    
   type = string
-  default = "t2.micro"
+  default = "t2.small"
 }
 
 variable "key_name" {

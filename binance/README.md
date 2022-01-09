@@ -28,7 +28,7 @@ Option | Description
 --market | Supported markets: ```SPOT```
 
 For a list of market symbols, see 
-https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
+https://api.binance.com/api/v3/exchangeInfo
 
 ## Outputs
 A .csv will be output to your present working directory under the name: 

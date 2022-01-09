@@ -72,7 +72,10 @@ resource "aws_instance" "my-machine" {
   #!/bin/bash
 
   sudo apt update
-  sudo apt install awscli
+  sudo apt install awscli -y
+  sudo apt install python3-pip -y
+  pip3 install pandas
+  pip3 install boto3
 
   echo export DISCORD_WEBHOOK_URL="${var.discord_webhook_url}" | sudo tee -a /etc/profile
   echo export S3_BUCKET_NAME="${aws_s3_bucket.data_bucket.id}" | sudo tee -a /etc/profile
@@ -121,7 +124,7 @@ resource "aws_instance" "my-machine" {
 
   provisioner "file" {
       source = "../binance_futures/binance_futures-scraper.py"
-      destination = "~/binance-scraper.py"
+      destination = "~/binance_futures-scraper.py"
 
       connection {
         type        = "ssh"
