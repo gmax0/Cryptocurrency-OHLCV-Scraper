@@ -1,15 +1,3 @@
-To be updated...
-
-### AWS Setup
-
-1. Export your credentials
-
-``` 
-export AWS_ACCESS_KEY_ID="YOUR ACCESS KEY"
-export AWS_SECRET_ACCESS_KEY="YOUR SECRET ACCESS KEY"
-export AWS_DEFAULT_REGION="REGION"
-```
-
 ### Installation
 
 ```
@@ -18,18 +6,33 @@ pip install py-cc-ohlcv
 
 ### Example
 
-Instantiate a scraper with your desired exchange, instrument, start+end dates:
+Instantiate a scraper with your desired exchange, instrument, resolution, start and end dates:
 
 ```
-from py-cc-ohlcv import scraper, exchanges, instruments
-from datetime import datetime
+from py_cc_ohlcv import scraper, exchanges
+from datetime import datetime, timezone, timedelta
+import logging
 
-end_date = datetime.now(datetime.timezone.utc)
-start_date = end_date - datetime.timedelta(hours=24) # Set a window from [present - 24 hours, present]
+logging.basicConfig(level = logging.INFO)
 
-cb_scraper = scraper(exchanges.COINBASE_PRO, instruments.BTC_USD, start_date, end_date)
-cb_scraper.set_proxy('http://0.0.0.0:8000') 
-cb_scraper.start()
+# Set a start and end date
+start_date = datetime(2022, 1, 1)
+start_date = start_date.replace(tzinfo=timezone.utc)
+end_date = start_date + timedelta(hours=24)
+
+# Initialize Scraper
+#cb_scraper = scraper.Scraper(exchanges.COINBASE_PRO, "BTC_USD", "1m", start_date, end_date)
+
+# Set Proxies if desired
+proxies = {
+    "http": "http://0.0.0.0:8000",
+    "https": "https://0.0.0.0:8000",
+}
+cb_scraper.set_proxies(proxies)
+
+# Begin scrapping
+candles_df = cb_scraper.run()
+print(candles_df)
 
 ```
 
