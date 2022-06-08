@@ -19,6 +19,18 @@ def binance_candle_mapping(candle):
     return entry
 
 @register
+def binance_us_candle_mapping(candle):
+    entry = {
+        "open_timestamp" : int(candle[0]),
+        "open" : float(candle[1]),
+        "high" : float(candle[2]),
+        "low" : float(candle[3]),
+        "close" : float(candle[4]),
+        "volume" : float(candle[5])
+    }
+    return entry
+
+@register
 def coinbase_pro_candle_mapping(candle):
     entry = {
         "open_timestamp" : int(candle[0]) * 1000,
@@ -43,8 +55,16 @@ def ftx_candle_mapping(candle):
     return entry
 
 @register
-def gemini_pro_candle_mapping(candle):
-    pass
+def gemini_candle_mapping(candle):
+    entry = {
+        "open_timestamp" : candle[0],
+        "open" : candle[1],
+        "high" : candle[2],
+        "low" : candle[3],
+        "close" : candle[4],
+        "volume" : candle[5]
+    }
+    return entry
 
 @register
 def kucoin_candle_mapping(candle):

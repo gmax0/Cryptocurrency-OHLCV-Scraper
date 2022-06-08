@@ -86,18 +86,18 @@ class Scraper:
             for key in self.metadata['response_keys']:
                 candles_response = candles_response[key]
 
-            logger.debug("Received {} candles".format(len(response.json())))
+            logger.debug("Received {} candles".format(len(candles_response))))
 
             for candle in candles_response:
                 parsed_candles.append(self.exchange_functions[self.exchange +'_candle_mapping'](candle))
 
-            time.sleep(0.25) # TODO: Fix 
+            time.sleep(0.25) # TODO: Use an actual rate limiter
             start = end
         
         df = pd.DataFrame(parsed_candles)
         df = df.set_index('open_timestamp')
         df = df.sort_index(ascending=True)
-        df = df.drop_duplicates()
-        df = df.truncate(after=int((self.window_end - delta_t / self.metadata['max_candles_per_req']).timestamp()) * 1000)
+        df = df[~df.index.duplicated(keep='first')] # Drop duplicate timestamps
+        df = df.truncate(after=int(self.window_end.timestamp() * 1000))
 
         return df
