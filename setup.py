@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='py_cc_ohlcv',
-    version='0.1.0',
+    version='0.1.1',
     license='MIT',
     author="Max Gao",
     author_email='gaamox@tutanota.com',

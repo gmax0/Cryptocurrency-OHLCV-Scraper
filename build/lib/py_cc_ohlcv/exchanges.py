@@ -1,0 +1,7 @@
+BINANCE = "binance"
+BINANCE_US = "binance_us"
+BINANCE_FUTURES = "binance_futures"
+COINBASE_PRO = "coinbase_pro"
+FTX = "ftx"
+GEMINI = "gemini"
+KUCOIN = "kucoin"
